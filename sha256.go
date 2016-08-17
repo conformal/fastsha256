@@ -125,11 +125,11 @@ func (d *digest) Write(p []byte) (nn int, err error) {
 	return
 }
 
-func (d *digest) Sum(in []byte) []byte {
-	// Make a copy of d so that caller can keep writing and summing.
-	d0 := *d
-	hash := d0.checkSum()
-	if d0.is224 {
+func (d0 *digest) Sum(in []byte) []byte {
+	// Make a copy of d0 so that caller can keep writing and summing.
+	d := *d0
+	hash := d.checkSum()
+	if d.is224 {
 		return append(in, hash[:Size224]...)
 	}
 	return append(in, hash[:]...)
@@ -137,7 +137,7 @@ func (d *digest) Sum(in []byte) []byte {
 
 func (d *digest) checkSum() [Size]byte {
 	len := d.len
-	// Padding.  Add a 1 bit and 0 bits until 56 bytes mod 64.
+	// Padding. Add a 1 bit and 0 bits until 56 bytes mod 64.
 	var tmp [64]byte
 	tmp[0] = 0x80
 	if len%64 < 56 {

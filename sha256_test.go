@@ -2,11 +2,12 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// SHA256 hash algorithm.  See FIPS 180-2.
+// SHA256 hash algorithm. See FIPS 180-2.
 
 package fastsha256
 
 import (
+	"crypto/rand"
 	"fmt"
 	"io"
 	"testing"
@@ -173,6 +174,36 @@ func TestMidState(t *testing.T) {
 			t.Errorf("Sum256 function: sha256(%s) = %s want %s", test.in, s, test.out)
 			continue
 		}
+	}
+}
+
+func TestSize(t *testing.T) {
+	c := New()
+	if got := c.Size(); got != Size {
+		t.Errorf("Size = %d; want %d", got, Size)
+	}
+	c = New224()
+	if got := c.Size(); got != Size224 {
+		t.Errorf("New224.Size = %d; want %d", got, Size224)
+	}
+}
+
+func TestBlockSize(t *testing.T) {
+	c := New()
+	if got := c.BlockSize(); got != BlockSize {
+		t.Errorf("BlockSize = %d want %d", got, BlockSize)
+	}
+}
+
+// Tests that blockGeneric (pure Go) and block (in assembly for some architectures) match.
+func TestBlockGeneric(t *testing.T) {
+	gen, asm := New().(*digest), New().(*digest)
+	buf := make([]byte, BlockSize*20) // arbitrary factor
+	rand.Read(buf)
+	blockGeneric(gen, buf)
+	block(asm, buf)
+	if *gen != *asm {
+		t.Error("block and blockGeneric resulted in different states")
 	}
 }
 
